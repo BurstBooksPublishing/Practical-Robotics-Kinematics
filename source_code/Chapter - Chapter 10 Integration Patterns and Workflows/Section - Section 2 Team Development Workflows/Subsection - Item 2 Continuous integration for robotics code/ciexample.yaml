@@ -1,0 +1,37 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      xvfb: # headless display for GUI-based simulators (if needed)
+        image: xfvb/xvfb:latest
+    steps:
+      - uses: actions/checkout@v3               # get source
+      - name: Setup ROS 2
+        uses: ros-tooling/setup-ros@v0         # provides ROS environment
+        with:
+          version: humble
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-colcon-common-extensions \
+                                libbullet-dev  # simulation dependency
+      - name: Install Python deps
+        run: pip3 install -r requirements-ci.txt  # pytest, pybullet, pinocchio
+      - name: Build workspace
+        run: |
+          source /opt/ros/humble/setup.bash
+          colcon build --event-handlers console_direct+  # fast feedback
+      - name: Run unit tests
+        run: |
+          source install/setup.bash
+          pytest tests/unit -q --maxfail=1              # fast numeric checks
+      - name: Run integration simulation (headless)
+        env:
+          PYTHONHASHSEED: 0                              # determinism
+        run: |
+          source install/setup.bash
+          python3 tests/integration/test_arm_reach.py    # PyBullet scenario
