@@ -1,0 +1,30 @@
+name: Compatibility CI
+on: [push, pull_request]
+
+jobs:
+  compat:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04]
+        python: [3.8, 3.10]
+        include:
+          - ros: melodic  # example ROS compatibility dimension
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install system deps (pinned)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake libeigen3-dev libboost-all-dev  # pinned system libs
+      - name: Install Python deps (from lockfile)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock.txt  # exact pinned versions
+      - name: Run smoke tests
+        run: |
+          python tests/smoke.py  # simple FK/Jacobian checks
