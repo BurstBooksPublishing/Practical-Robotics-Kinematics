@@ -1,0 +1,16 @@
+{
+  // Use compile_commands from colcon/CMake build.
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json", 
+  "clangd.path": "/usr/bin/clangd",                            // clangd LSP
+  "clangd.arguments": ["--compile-commands-dir=build"],       // point to build dir
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python", // venv
+  "ros.distro": "humble",                                      // ROS extension setting
+  "cmake.configureArgs": [                                     // ensure compile commands exported
+    "-DCMAKE_BUILD_TYPE=Debug",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+  ],
+  // Linting and formatting policies consistent with CI
+  "python.linting.enabled": true,
+  "python.linting.pyrightEnabled": true,
+  "editor.formatOnSave": true
+}
